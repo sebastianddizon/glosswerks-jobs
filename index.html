@@ -240,6 +240,12 @@ body.noScroll{overflow:hidden}
   background-clip:padding-box}
 .shutter:active{transform:scale(.94)}
 .shutter[disabled]{opacity:.4}
+.camShot{position:absolute;top:14px;left:50%;transform:translateX(-50%);max-width:92%;text-align:center;
+  background:rgba(14,22,40,.82);color:#fff;border-radius:16px;padding:12px 22px;pointer-events:none}
+.camShotT{font-size:26px;font-weight:800;line-height:1.15}
+.camShotH{font-size:14px;color:#D7DBE3;margin-top:4px}
+.camSkip{position:absolute;right:18px;background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.5);
+  font-weight:700;border-radius:11px;padding:10px 14px;font-size:14px}
 .camFallback{background:#fff;color:var(--navy);font-weight:800;border-radius:13px;padding:16px 26px;font-size:16px}
 .doneQueue{font-weight:800;font-size:14px;padding:12px 14px;border-radius:11px;margin:0 auto 22px;max-width:420px}
 .doneQueue.wait{background:#FDF1D6;color:var(--amber)}
@@ -380,13 +386,18 @@ body.noScroll{overflow:hidden}
     <div class="step" id="st1"><div class="stepNum"><span>1</span></div><div class="stepBody">
       <div class="stepT">Before photos</div><div class="stepS" id="st1s"></div>
       <div class="thumbs" id="th1"></div>
+      <div id="scopePick" class="hide">
+        <button class="btnGhost" onclick="pickPhotoScope('interior')">Interior only</button>
+        <button class="btnGhost" onclick="pickPhotoScope('exterior')">Exterior only</button>
+        <button class="btnGhost" onclick="pickPhotoScope('both')">Both, full detail</button>
+      </div>
       <button class="btnPrimary" id="st1b" onclick="openCamera('Before')"></button>
     </div></div>
 
     <div class="step" id="st2"><div class="stepNum"><span>2</span></div><div class="stepBody">
       <div class="stepT">After photos</div><div class="stepS" id="st2s"></div>
       <div class="thumbs" id="th2"></div>
-      <button class="btnPrimary" id="st2b" onclick="openCamera('After')"></button>
+      <button class="btnPrimary" id="st2b" onclick="stepTwo()"></button>
     </div></div>
 
     <div class="step" id="st3"><div class="stepNum"><span>3</span></div><div class="stepBody">
@@ -516,10 +527,12 @@ body.noScroll{overflow:hidden}
     <video id="camVideo" playsinline muted autoplay></video>
     <button class="camFallback hide" id="camFallback" onclick="el('fileCam').click()">&#128247; Open camera</button>
     <div class="camFlash" id="camFlash"></div>
+    <div class="camShot hide" id="camShot"><div class="camShotT" id="camShotT"></div><div class="camShotH" id="camShotH"></div></div>
   </div>
   <div class="camBar">
     <img class="camLast hide" id="camLast" alt="">
     <button class="shutter" id="camShutter" onclick="snap()" aria-label="Take photo"></button>
+    <button class="camSkip hide" id="camSkip" onclick="noRearDoors()">No rear doors</button>
   </div>
   <input type="file" id="fileCam" accept="image/*" capture="environment" class="hide" onchange="fromFile(this)">
 </div>

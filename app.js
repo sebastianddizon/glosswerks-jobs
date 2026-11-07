@@ -248,18 +248,80 @@ function setWalk(v) { WALK = v; setPair("cWalkYes", "cWalkNo", v); }
 function localCounts(jobId) {
   try { return JSON.parse(recall("gw_cnt_" + jobId) || "{}"); } catch (e) { return {}; }
 }
+function saveCounts(jobId, c) { store("gw_cnt_" + jobId, JSON.stringify(c)); }
+
+// The shot list comes straight from the Photo Reference Guide.
+// rd = rear door shot, skipped on 2-door vehicles.
+var EXT_SHOTS = [
+  { k: "front_bumper",   t: "Front bumper",                   h: "Chips, scratches, bug splatter" },
+  { k: "hood",           t: "Hood",                           h: "Swirl marks, oxidation, water spots" },
+  { k: "windshield",     t: "Windshield",                     h: "Cracks, chips, grime" },
+  { k: "d_front_fender", t: "Driver front fender and wheel",  h: "Scratches, curb rash, brake dust" },
+  { k: "d_front_door",   t: "Driver front door",              h: "Dings, scratches" },
+  { k: "d_rear_door",    t: "Driver rear door",               h: "Dings, scratches", rd: true },
+  { k: "d_rear_fender",  t: "Driver rear fender and wheel",   h: "Scratches, curb rash, brake dust" },
+  { k: "rear_bumper",    t: "Rear bumper",                    h: "Scuffs, exhaust soot, damage" },
+  { k: "trunk",          t: "Trunk or hatch",                 h: "Water spots, scratches, emblem condition" },
+  { k: "rear_window",    t: "Rear window",                    h: "Cracks, chips, grime" },
+  { k: "p_rear_fender",  t: "Passenger rear fender and wheel",h: "Scratches, curb rash, brake dust" },
+  { k: "p_rear_door",    t: "Passenger rear door",            h: "Dents, scratches", rd: true },
+  { k: "p_front_door",   t: "Passenger front door",           h: "Dents, scratches" },
+  { k: "p_front_fender", t: "Passenger front fender and wheel",h: "Scratches, curb rash, brake dust" }
+];
+var INT_SHOTS = [
+  { k: "i_driver",     t: "Driver seat and floor",    h: "Stains, wear, debris" },
+  { k: "i_passenger",  t: "Passenger seat and floor", h: "Stains, wear, debris" },
+  { k: "i_rear_seats", t: "Rear seats",               h: "Stains, pet hair, wear" },
+  { k: "i_rear_floor", t: "Rear floor",               h: "Debris, stains" },
+  { k: "i_dash",       t: "Dash and console",         h: "Dust, spills, scratches" },
+  { k: "i_cargo",      t: "Trunk or cargo area",      h: "Debris, stains" }
+];
+
+// What the job covers: interior, exterior or both. Asked once when the
+// service doesn't say, then reused for the photos and the final check.
+function jobScope(job) {
+  var s = scopeForService(job.service);
+  return s || recall("gw_scope_" + job.jobId);
+}
+function shotList(job) {
+  var scope = jobScope(job);
+  if (!scope) return [];
+  var noRear = !!localCounts(job.jobId).noRear;
+  var list = scope === "interior" ? INT_SHOTS : (scope === "exterior" ? EXT_SHOTS : EXT_SHOTS.concat(INT_SHOTS));
+  return list.filter(function (s) { return !(noRear && s.rd); });
+}
+function shotsDone(job, seg) {
+  var got = (localCounts(job.jobId).shots || {})[seg] || {};
+  return shotList(job).filter(function (s) { return got[s.k]; }).length;
+}
+function nextShot(job, seg) {
+  var got = (localCounts(job.jobId).shots || {})[seg] || {};
+  var list = shotList(job);
+  for (var i = 0; i < list.length; i++) if (!got[list[i].k]) return { shot: list[i], n: i + 1, of: list.length };
+  return null;
+}
 function counts(job) {
   var c = localCounts(job.jobId);
+  var need = shotList(job).length;
+  var srvB = Number(job.beforeCount) || 0, srvA = Number(job.afterCount) || 0;
+  var b = shotsDone(job, "Before"), a = shotsDone(job, "After");
   return {
-    before: Math.max(c.Before || 0, Number(job.beforeCount) || 0),
-    after: Math.max(c.After || 0, Number(job.afterCount) || 0)
+    need: need, before: b, after: a,
+    // A job opened on another device has no local shot list, so the sheet's count stands in.
+    beforeOk: need > 0 && (b >= need || srvB >= need),
+    afterOk: need > 0 && (a >= need || srvA >= need),
+    detailDone: !!c.detailDone || srvA > 0,
+    beforeDoneAt: c.beforeDoneAt || 0
   };
 }
 function bump(jobId, seg, stopKey) {
   var c = localCounts(jobId);
   if (seg === "Check") { c.Check = c.Check || {}; c.Check[stopKey] = true; }
-  else c[seg] = (c[seg] || 0) + 1;
-  store("gw_cnt_" + jobId, JSON.stringify(c));
+  else {
+    c[seg] = (c[seg] || 0) + 1;
+    if (stopKey) { c.shots = c.shots || {}; c.shots[seg] = c.shots[seg] || {}; c.shots[seg][stopKey] = true; }
+  }
+  saveCounts(jobId, c);
 }
 function stopDone(jobId, stopKey) {
   var c = localCounts(jobId);
@@ -275,16 +337,16 @@ function findJob(id) {
 
 function showHome() {
   var mine = (DATA.jobs || []).filter(function (j) { return j.tech === ME && j.status === "Open"; });
-  var mb = DATA.minBefore || 4, ma = DATA.minAfter || 4;
   var h = mine.map(function (j) {
     var c = counts(j);
-    var next = c.before < mb ? "Next: before photos" : (c.after < ma ? "Next: after photos" : "Next: final check");
+    var next = !c.beforeOk ? "Next: before photos" : (!c.detailDone ? "Next: do the detail" :
+               (!c.afterOk ? "Next: after photos" : "Next: final check"));
     return '<div class="card open"><div class="jobTop"><div class="jobName">' + esc(j.customer) + '</div></div>' +
       '<div class="muted" style="margin-top:3px">' + esc(j.vehicle) + '</div>' +
       '<div class="chips"><span class="chip blue">' + esc(j.service) + '</span>' +
       '<span class="chip">Started ' + esc(ageText(j.preTimestamp)) + '</span>' +
-      '<span class="chip ' + (c.before >= mb ? "ok" : "warn") + '">Before ' + c.before + '</span>' +
-      '<span class="chip ' + (c.after >= ma ? "ok" : "") + '">After ' + c.after + '</span></div>' +
+      '<span class="chip ' + (c.beforeOk ? "ok" : "warn") + '">Before ' + c.before + (c.need ? "/" + c.need : "") + '</span>' +
+      '<span class="chip ' + (c.afterOk ? "ok" : "") + '">After ' + c.after + (c.need ? "/" + c.need : "") + '</span></div>' +
       '<div class="nextLine">' + next + '</div>' +
       '<button class="btnPrimary btnGo" onclick="showJob(\'' + esc(j.jobId) + '\')">Open this job</button></div>';
   }).join("");
@@ -355,27 +417,77 @@ function showJob(jobId) {
 function renderJob() {
   var j = CURRENT;
   if (!j) return;
-  var c = counts(j), mb = DATA.minBefore || 4, ma = DATA.minAfter || 4;
-  var beforeOk = c.before >= mb, afterOk = c.after >= ma;
-
   el("jName").textContent = j.customer;
   el("jChips").innerHTML = '<span class="chip blue">' + esc(j.vehicle) + '</span>' +
     '<span class="chip">' + esc(j.service) + '</span>' +
     '<span class="chip">Started ' + esc(ageText(j.preTimestamp)) + '</span>';
 
-  setStep(1, beforeOk ? "complete" : "now",
-    c.before + " taken" + (beforeOk ? "" : ", " + (mb - c.before) + " more needed"),
-    beforeOk ? "Add more before photos" : "Take before photos", false);
-  setStep(2, !beforeOk ? "locked" : (afterOk ? "complete" : "now"),
-    !beforeOk ? "Opens after the before photos" :
-      c.after + " taken" + (afterOk ? "" : ", " + (ma - c.after) + " more needed. Do the detail first."),
-    afterOk ? "Add more after photos" : "Take after photos", !beforeOk);
-  setStep(3, !afterOk ? "locked" : "now",
-    !afterOk ? "Opens after the after photos" : "Walk the vehicle. One photo at each stop.",
-    "Start final check", !afterOk);
+  // Service doesn't say what's being detailed: ask once, before any photo.
+  var needScope = !jobScope(j);
+  el("scopePick").classList.toggle("hide", !needScope);
+  el("st1b").classList.toggle("hide", needScope);
+  if (needScope) {
+    setStep(1, "now", "What are you detailing on this job?", "", true);
+    setStep(2, "locked", "Opens after the before photos", "Take after photos", true);
+    setStep(3, "locked", "Opens after the after photos", "Start final check", true);
+    el("th1").innerHTML = ""; el("th2").innerHTML = "";
+    return;
+  }
+
+  var c = counts(j), N = c.need;
+  setStep(1, c.beforeOk ? "complete" : "now",
+    c.beforeOk ? "All " + N + " shots taken" :
+      (c.before ? c.before + " of " + N + " shots taken" : N + " shots. The camera tells you each one."),
+    c.beforeOk ? "Add close-ups" : (c.before ? "Keep going" : "Take before photos"), false);
+
+  if (!c.beforeOk) {
+    setStep(2, "locked", "Opens after the before photos", "Take after photos", true);
+  } else if (!c.detailDone) {
+    setStep(2, "now", "Do the detail now. Tap below when you are finished.", "I'm done detailing", false);
+  } else {
+    setStep(2, c.afterOk ? "complete" : "now",
+      c.afterOk ? "All " + N + " shots taken" :
+        (c.after ? c.after + " of " + N + " shots taken" : "Same " + N + " shots as before, now finished."),
+      c.afterOk ? "Add close-ups" : (c.after ? "Keep going" : "Take after photos"), false);
+  }
+  setStep(3, !c.afterOk ? "locked" : "now",
+    !c.afterOk ? "Opens after the after photos" : "Walk the vehicle. One photo at each stop.",
+    "Start final check", !c.afterOk);
 
   el("th1").innerHTML = thumbHtml(j.jobId, "Before");
   el("th2").innerHTML = thumbHtml(j.jobId, "After");
+}
+
+function pickPhotoScope(scope) {
+  if (!CURRENT) return;
+  store("gw_scope_" + CURRENT.jobId, scope);
+  renderJob();
+}
+
+function stepTwo() {
+  if (!CURRENT) return;
+  var c = counts(CURRENT);
+  if (!c.detailDone) { doneDetailing(); return; }
+  openCamera("After");
+}
+
+var DETAIL_ARMED = false;
+function doneDetailing() {
+  var c = counts(CURRENT);
+  var mins = c.beforeDoneAt ? Math.floor((Date.now() - c.beforeDoneAt) / 60000) : 999;
+  // A detail takes real time. A tap right after the before photos gets one "are you sure".
+  if (mins < 20 && !DETAIL_ARMED) {
+    DETAIL_ARMED = true;
+    toast("Only " + mins + " min since the before photos. Tap again if the detail is really done.");
+    setTimeout(function () { DETAIL_ARMED = false; }, 6000);
+    return;
+  }
+  DETAIL_ARMED = false;
+  var lc = localCounts(CURRENT.jobId);
+  lc.detailDone = Date.now();
+  saveCounts(CURRENT.jobId, lc);
+  renderJob();
+  toast("Nice. Now the after photos, same shots as before.");
 }
 
 function setStep(n, state, sub, btnText, disabled) {
@@ -383,7 +495,7 @@ function setStep(n, state, sub, btnText, disabled) {
   el("st" + n + "s").textContent = sub;
   var b = el("st" + n + "b");
   // A finished step's button goes quiet so the next step is the obvious one.
-  if (n < 3) b.className = state === "complete" ? "btnGhost" : "btnPrimary";
+  if (n < 3) b.className = (state === "complete" ? "btnGhost" : "btnPrimary") + (b.classList.contains("hide") ? " hide" : "");
   b.textContent = btnText;
   b.disabled = !!disabled;
 }
@@ -402,7 +514,8 @@ function openCamera(seg, opts) {
   opts = opts || {};
   CAM.seg = seg; CAM.stop = opts.stop || ""; CAM.stopTitle = opts.title || "";
   CAM.single = !!opts.single; CAM.n = 0; CAM.onDone = opts.onDone || null;
-  el("camTitle").textContent = seg === "Check" ? CAM.stopTitle : seg + " photos";
+  CAM.guided = seg === "Before" || seg === "After";
+  CAM.shot = null;
   el("camLast").classList.add("hide");
   el("camFallback").classList.add("hide");
   el("camVideo").classList.remove("hide");
@@ -410,7 +523,7 @@ function openCamera(seg, opts) {
   el("camShutter").disabled = true;
   el("cam").classList.remove("hide");
   document.body.classList.add("noScroll");
-  updateCamCount();
+  camShotSetup();
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { camFallback(); return; }
   navigator.mediaDevices.getUserMedia({
@@ -472,6 +585,54 @@ function shrink(file) {
   });
 }
 
+// Points the camera at the next shot on the list, or at close-ups once the list is done.
+function camShotSetup() {
+  if (!CAM.guided) {
+    el("camTitle").textContent = CAM.stopTitle;
+    el("camShot").classList.add("hide");
+    el("camSkip").classList.add("hide");
+    updateCamCount();
+    return;
+  }
+  var nx = nextShot(CURRENT, CAM.seg);
+  CAM.shot = nx ? nx.shot : null;
+  CAM.stop = nx ? nx.shot.k : "";
+  CAM.stopTitle = nx ? nx.shot.t : "Close-up";
+  el("camShot").classList.remove("hide");
+  if (nx) {
+    el("camTitle").textContent = CAM.seg + " photos  ·  Shot " + nx.n + " of " + nx.of;
+    el("camCount").textContent = "Line it up and tap the button.";
+    el("camShotT").textContent = nx.shot.t;
+    el("camShotH").textContent = "Show: " + nx.shot.h.toLowerCase();
+    el("camSkip").classList.toggle("hide", !nx.shot.rd);
+  } else {
+    var N = shotList(CURRENT).length;
+    el("camTitle").textContent = CAM.seg + " photos  ·  All " + N + " done";
+    el("camCount").textContent = "Tap Done, or add close-ups of anything worth showing.";
+    el("camShotT").textContent = "Optional close-ups";
+    el("camShotH").textContent = "Paint damage, badges, mirrors, anything the customer pointed out";
+    el("camSkip").classList.add("hide");
+  }
+}
+
+function noRearDoors() {
+  var lc = localCounts(CURRENT.jobId);
+  lc.noRear = true;
+  saveCounts(CURRENT.jobId, lc);
+  toast("Got it. Skipping rear doors on this vehicle.");
+  markBeforeDone();
+  camShotSetup();
+}
+
+function markBeforeDone() {
+  if (!CURRENT) return;
+  var lc = localCounts(CURRENT.jobId);
+  if (!lc.beforeDoneAt && shotsDone(CURRENT, "Before") >= shotList(CURRENT).length) {
+    lc.beforeDoneAt = Date.now();
+    saveCounts(CURRENT.jobId, lc);
+  }
+}
+
 function addShot(blob) {
   var job = CURRENT;
   if (!job || !blob) return;
@@ -495,20 +656,18 @@ function addShot(blob) {
   CAM.n++;
   el("camLast").src = u;
   el("camLast").classList.remove("hide");
-  updateCamCount();
+  if (CAM.guided) {
+    var wasLast = !!CAM.shot && !nextShot(job, seg);
+    if (seg === "Before") markBeforeDone();
+    camShotSetup();
+    if (wasLast) toast("All " + shotList(job).length + " " + seg.toLowerCase() + " shots done. Tap Done.");
+  } else updateCamCount();
   if (CAM.single) setTimeout(closeCamera, 450);
 }
 
 function updateCamCount() {
   var t;
-  if (CAM.seg === "Check") {
-    t = CAM.n ? "Photo saved" : "Take one photo of this area";
-  } else {
-    var c = counts(CURRENT);
-    var have = CAM.seg === "Before" ? c.before : c.after;
-    var need = CAM.seg === "Before" ? (DATA.minBefore || 4) : (DATA.minAfter || 4);
-    t = have + " taken" + (have < need ? ", " + (need - have) + " more needed" : ". That's enough. Add more if you want.");
-  }
+  t = CAM.n ? "Photo saved" : "Take one photo of this area";
   el("camCount").textContent = t;
 }
 
@@ -614,7 +773,7 @@ function scopeForService(service) {
 function startWalk() {
   if (!CURRENT) return;
   STOP_I = 0; FLAGS = []; WALK_T0 = 0; WALK_T1 = 0;
-  CHECK_SCOPE = scopeForService(CURRENT.service);
+  CHECK_SCOPE = jobScope(CURRENT);
   screen("scInspect");
   if (!CHECK_SCOPE) {
     el("scopeAsk").classList.remove("hide");
@@ -625,6 +784,7 @@ function startWalk() {
 }
 function pickScope(scope) {
   CHECK_SCOPE = scope;
+  if (CURRENT) store("gw_scope_" + CURRENT.jobId, scope);
   el("scopeAsk").classList.add("hide");
   beginStops();
 }
