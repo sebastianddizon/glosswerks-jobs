@@ -331,6 +331,11 @@ function bump(jobId, seg, stopKey) {
   if (seg === "Check") { c.Check = c.Check || {}; c.Check[stopKey] = true; }
   else {
     c[seg] = (c[seg] || 0) + 1;
+    // First and last shot times, so the Gloss Ops post can show how long each round took.
+    c.times = c.times || {};
+    var now = Date.now(), tm = c.times[seg] || { first: now, last: now };
+    tm.first = Math.min(tm.first, now); tm.last = Math.max(tm.last, now);
+    c.times[seg] = tm;
     if (stopKey) { c.shots = c.shots || {}; c.shots[seg] = c.shots[seg] || {}; c.shots[seg][stopKey] = true; }
   }
   saveCounts(jobId, c);
@@ -955,7 +960,8 @@ function submitComplete() {
     photos: (function () {
       var lc = localCounts(CURRENT.jobId);
       return { need: shotList(CURRENT).length, beforeShots: shotsDone(CURRENT, "Before"),
-               afterShots: shotsDone(CURRENT, "After"), beforeTotal: lc.Before || 0, afterTotal: lc.After || 0 };
+               afterShots: shotsDone(CURRENT, "After"), beforeTotal: lc.Before || 0, afterTotal: lc.After || 0,
+               times: lc.times || {} };
     })()
   }).then(function (res) {
     btn.disabled = false; btn.textContent = "Complete job";
