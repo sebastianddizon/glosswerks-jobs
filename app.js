@@ -72,12 +72,24 @@ function api(action, payload) {
     return Promise.reject(new Error("The app is not connected yet. The /exec URL goes in config.js."));
   }
   // Sent as plain text on purpose: no preflight, which Apps Script cannot answer.
+  // Every call gets a time limit. Without one, a stuck iPad connection waits
+  // forever and nothing ever retries.
+  var ctl = window.AbortController ? new AbortController() : null;
+  var ms = action === "uploadPhoto" ? 60000 : 30000;
+  var timer = setTimeout(function () { if (ctl) ctl.abort(); }, ms);
   return fetch(CFG.API_URL, {
     method: "POST",
-    body: JSON.stringify({ pin: PIN, action: action, payload: payload || {} })
+    body: JSON.stringify({ pin: PIN, action: action, payload: payload || {} }),
+    signal: ctl ? ctl.signal : undefined
   }).then(function (r) {
     if (!r.ok) throw new Error("HTTP " + r.status);
-    return r.json();
+    return r.text();
+  }).then(function (t) {
+    clearTimeout(timer);
+    try { return JSON.parse(t); } catch (e) { throw new Error("Server error: " + t.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 120)); }
+  }, function (e) {
+    clearTimeout(timer);
+    throw (e && e.name === "AbortError") ? new Error("Timed out") : e;
   }).then(function (res) {
     if (res && res.error === "pin") {
       forget("gw_pin");
@@ -103,7 +115,7 @@ function boot() {
   setInterval(pump, 60000);
   window.addEventListener("online", pump);
   document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === "visible") pump();
+    if (document.visibilityState === "visible") { PUMPING = false; pump(); }
   });
 }
 
@@ -710,35 +722,60 @@ function qDel(id) { return qOp("readwrite", function (s) { return s.delete(id); 
 function qAll() { return qOp("readonly", function (s) { return s.getAll(); }); }
 
 var PUMPING = false, PUMP_T = null, STALLED = false;
+var LAST_ERR = "", PUMP_AT = 0, FAILS = {};
 function pump() {
+  // Safety net: if a pass has been "running" for over 2 minutes, it is stuck. Start fresh.
+  if (PUMPING && Date.now() - PUMP_AT > 120000) PUMPING = false;
   if (PUMPING || !PIN) return;
-  PUMPING = true;
+  PUMPING = true; PUMP_AT = Date.now();
+  clearTimeout(PUMP_T);
   qAll().then(function (items) {
     items = items || [];
     items.sort(function (a, b) { return a.takenAt - b.takenAt; });
-    var i = 0;
+    var i = 0, failedThisPass = 0;
     function next() {
+      PUMP_AT = Date.now();
       showQueue(items.length - i);
-      if (i >= items.length) { PUMPING = false; STALLED = false; showQueue(0); return; }
+      if (i >= items.length) {
+        // Photos taken while this pass was running go out right away, not on the next retry.
+        qAll().then(function (now) {
+          now = now || [];
+          var tried = {};
+          items.forEach(function (x) { tried[x.clientId] = 1; });
+          var fresh = now.some(function (x) { return !tried[x.clientId]; });
+          PUMPING = false;
+          if (fresh) { pump(); return; }
+          if (!now.length) { STALLED = false; showQueue(0); return; }
+          STALLED = !!failedThisPass; showQueue(now.length);
+          PUMP_T = setTimeout(pump, 20000);
+        }).catch(function () { PUMPING = false; });
+        return;
+      }
       var it = items[i];
       api("uploadPhoto", {
         jobId: it.jobId, segment: it.segment, stop: it.stop, takenAt: it.takenAt,
         clientId: it.clientId, data: it.data
       }).then(function (res) {
         if (!res || !res.ok) throw new Error((res && res.error) || "Upload failed");
+        delete FAILS[it.clientId];
         return qDel(it.clientId).then(function () { STALLED = false; i++; next(); });
-      }).catch(function () {
-        PUMPING = false;
-        STALLED = true;
-        showQueue(items.length - i);
-        clearTimeout(PUMP_T);
-        PUMP_T = setTimeout(pump, 20000);
+      }).catch(function (e) {
+        LAST_ERR = (e && e.message) || "Upload failed";
+        if (e && e.message === "pin") { PUMPING = false; return; }
+        FAILS[it.clientId] = (FAILS[it.clientId] || 0) + 1;
+        // One bad photo should never hold up the rest. Skip it for now, retry it next pass.
+        if (FAILS[it.clientId] < 2) { setTimeout(next, 3000); return; }
+        failedThisPass++; i++; next();
       });
     }
     next();
   }).catch(function () { PUMPING = false; });
 }
-
+function pillTap() {
+  if (LAST_ERR) toast("Last problem: " + LAST_ERR + ". Retrying now.");
+  PUMPING = false;
+  pump();
+}
 function updatePill() { qAll().then(function (items) { showQueue((items || []).length); }).catch(function () {}); }
 
 function showQueue(n) {
@@ -919,7 +956,8 @@ function submitComplete() {
     pump();
   }).catch(function (e) {
     btn.disabled = false; btn.textContent = "Complete job";
-    if (e.message !== "pin") toast(netMsg(e));
+    if (e.message === "pin") return;
+    toast(e.message === "Timed out" ? "Saving took too long. Check signal and tap Complete again." : netMsg(e));
   });
 }
 
