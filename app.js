@@ -463,7 +463,7 @@ function renderJob() {
       c.afterOk ? "Add close-ups" : (c.after ? "Keep going" : "Take after photos"), false);
   }
   setStep(3, !c.afterOk ? "locked" : "now",
-    !c.afterOk ? "Opens after the after photos" : "Walk the vehicle. One photo at each stop.",
+    !c.afterOk ? "Opens after the after photos" : "Walk the vehicle and check each area.",
     "Start final check", !c.afterOk);
 
   el("th1").innerHTML = thumbHtml(j.jobId, "Before");
@@ -833,6 +833,7 @@ function beginStops() {
   renderStop();
 }
 
+var STOP_T = null;
 function renderStop() {
   var st = STOPS[STOP_I];
   el("stopTitle").textContent = st.title;
@@ -852,14 +853,21 @@ function renderStop() {
   for (var k = 0; k < STOPS.length; k++) p += '<i class="' + (k < STOP_I ? "on" : (k === STOP_I ? "now" : "")) + '"></i>';
   el("walkProg").innerHTML = p;
 
-  var done = stopDone(CURRENT.jobId, st.key);
-  var pb = el("stopPhotoBtn");
-  pb.className = "photoBtn" + (done ? " done" : "");
-  pb.innerHTML = done ? "&#10003; Photo taken &middot; tap to retake" : "&#128247; Take a photo of this area";
+  // No photo here: the after photos already document the car. This is a quality check,
+  // so the button waits a moment per item, enough to actually look, not to tap through.
   var b = el("stopBtn");
-  b.disabled = !done;
-  b.textContent = !done ? "Take the photo first" :
-    (STOP_I === STOPS.length - 1 ? "Checked all of these, finish up" : "Checked all of these");
+  var label = STOP_I === STOPS.length - 1 ? "Checked all of these, finish up" : "Checked all of these";
+  var wait = Math.max(4, Math.min(12, st.items.length));
+  clearInterval(STOP_T);
+  b.disabled = true;
+  b.textContent = "Look over each item (" + wait + ")";
+  STOP_T = setInterval(function () {
+    wait--;
+    if (wait > 0) { b.textContent = "Look over each item (" + wait + ")"; return; }
+    clearInterval(STOP_T);
+    b.disabled = false;
+    b.textContent = label;
+  }, 1000);
 
   renderFlags();
   closeFlag();
@@ -885,7 +893,6 @@ function saveFlag() {
 }
 
 function confirmStop() {
-  if (!stopDone(CURRENT.jobId, STOPS[STOP_I].key)) { toast("Take the photo for this stop first."); return; }
   if (STOP_I < STOPS.length - 1) { STOP_I++; renderStop(); return; }
   goComplete();
 }
