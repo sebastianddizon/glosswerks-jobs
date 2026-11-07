@@ -386,7 +386,8 @@ function showStart() {
 }
 
 function submitStart() {
-  var cust = el("sCustomer").value.trim().replace(/\s+/g, " ");
+  var cust = el("sCustomer").value.trim().replace(/\s+/g, " ")
+    .replace(/(^|[\s\-'])([a-z])/g, function (m, pre, c) { return pre + c.toUpperCase(); });
   el("sCustomer").value = cust;
   var veh = el("sVehicle").value.trim();
   if (!cust) { toast("Customer name is required."); el("sCustomer").focus(); return; }
