@@ -1,7 +1,7 @@
 // Keeps the app opening with no signal. Pages and code are fetched fresh when
 // online (so updates show up right away) and from the saved copy when offline.
 // Calls to Apps Script are never touched here.
-var CACHE = "gw-jobs-v4";
+var CACHE = "gw-jobs-v5";
 var SHELL = [
   "./", "index.html", "app.js", "config.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",

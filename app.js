@@ -951,7 +951,12 @@ function submitComplete() {
     flags: FLAGS.map(function (f) { return f.title + ": " + f.text; }),
     attested: ATTESTED,
     checkScope: CHECK_SCOPE,
-    inAppPhotos: true
+    inAppPhotos: true,
+    photos: (function () {
+      var lc = localCounts(CURRENT.jobId);
+      return { need: shotList(CURRENT).length, beforeShots: shotsDone(CURRENT, "Before"),
+               afterShots: shotsDone(CURRENT, "After"), beforeTotal: lc.Before || 0, afterTotal: lc.After || 0 };
+    })()
   }).then(function (res) {
     btn.disabled = false; btn.textContent = "Complete job";
     if (!res || !res.ok) { toast("Could not save. Try again."); return; }
