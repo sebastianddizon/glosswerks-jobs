@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Glosswerks Jobs</title>
+<meta name="theme-color" content="#232A3C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GW Jobs">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#FAFAFA; --navy:#232A3C; --red:#9B242A; --gray:#98989A;
+  --card:#FFFFFF; --line:#E6E8EC; --ink:#1B2130; --dim:#6B7280;
+  --green:#1E7A4B; --amber:#B4690E; --blue:#2C4A7C;
+  --shadow:0 1px 2px rgba(35,42,60,.06),0 4px 14px rgba(35,42,60,.06);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);padding-bottom:110px;
+  font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:16px}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.hide{display:none !important}
+
+.top{position:sticky;top:0;z-index:40;background:var(--navy);color:#fff;
+  padding:12px 16px;box-shadow:0 2px 10px rgba(35,42,60,.18)}
+.topRow{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  max-width:1100px;margin:0 auto;width:100%}
+.brand{display:flex;align-items:baseline;gap:8px;min-width:0}
+.wordmark{font-size:15px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.subMark{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:#fff;background:var(--red);padding:3px 7px;border-radius:4px;white-space:nowrap}
+.whoChip{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:5px 12px 5px 5px;
+  font-size:13px;font-weight:600;white-space:nowrap}
+.avatar{width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;
+  display:grid;place-items:center;font-size:11px;font-weight:800}
+
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+.h{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gray);margin:22px 0 10px}
+.h:first-child{margin-top:2px}
+.muted{color:var(--dim);font-size:13px}
+.center{text-align:center}
+
+.gate{max-width:420px;margin:0 auto;padding:44px 20px}
+.gateMark{text-align:center;margin-bottom:8px}
+.gateMark .wordmark{color:var(--navy);font-size:19px}
+.gateTitle{text-align:center;font-size:22px;font-weight:800;margin:20px 0 4px;color:var(--navy)}
+.gateSub{text-align:center;color:var(--dim);font-size:14px;margin-bottom:26px}
+.whoGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.whoBtn{background:var(--card);border:1.5px solid var(--line);border-radius:14px;
+  padding:18px 10px;text-align:center;font-weight:700;box-shadow:var(--shadow)}
+.whoBtn:active{border-color:var(--red);transform:scale(.98)}
+.whoBtn .avatar{margin:0 auto 8px;width:36px;height:36px;font-size:14px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card.open{border-left:5px solid var(--amber)}
+.card.fin{border-left:5px solid var(--green)}
+.jobTop{display:flex;gap:12px;align-items:flex-start}
+.jobName{font-weight:800;font-size:16px;flex:1;line-height:1.3}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.chip{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;
+  background:#F3F4F6;color:var(--dim)}
+.chip.warn{background:#FDF1D6;color:var(--amber)}
+.chip.ok{background:#E7F4EC;color:var(--green)}
+.chip.blue{background:#EEF1F6;color:var(--blue)}
+
+label.f{display:block;font-size:12px;font-weight:800;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--gray);margin:16px 0 7px}
+label.f:first-child{margin-top:0}
+.in{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:11px;
+  background:#FBFBFC}
+.in:focus{outline:none;border-color:var(--navy);background:#fff}
+textarea.in{min-height:84px;resize:vertical}
+select.in{appearance:none;background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2398989A' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt{display:flex;align-items:center;gap:9px;padding:12px;border:1.5px solid var(--line);
+  border-radius:11px;background:var(--card);font-size:13.5px;font-weight:600;text-align:left;
+  line-height:1.25}
+.opt .box{width:20px;height:20px;border-radius:6px;border:2px solid var(--line);
+  flex:none;display:grid;place-items:center;font-size:13px;color:#fff}
+.opt.on{border-color:var(--navy);background:#F4F6F9}
+.opt.on .box{background:var(--navy);border-color:var(--navy)}
+.opt.dmg.on{border-color:var(--amber);background:#FDF7EA}
+.opt.dmg.on .box{background:var(--amber);border-color:var(--amber)}
+
+.btnPrimary{width:100%;background:var(--red);color:#fff;border-radius:13px;padding:16px;
+  font-weight:800;font-size:15.5px;box-shadow:0 4px 14px rgba(155,36,42,.28)}
+.btnPrimary:active{opacity:.88}
+.btnPrimary[disabled]{background:var(--gray);box-shadow:none;opacity:.6}
+.btnGo{background:var(--green);box-shadow:0 4px 14px rgba(30,122,75,.26)}
+.btnGhost{width:100%;background:var(--card);border:1.5px solid var(--line);color:var(--navy);
+  border-radius:13px;padding:14px;font-weight:700;font-size:14.5px;margin-bottom:10px}
+.btnRow{display:flex;gap:9px}
+.btnRow .btnGhost{margin-bottom:0}
+
+.backBar{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.backBtn{display:flex;align-items:center;gap:6px;font-weight:700;color:var(--navy);
+  padding:8px 12px 8px 9px;border-radius:10px;background:var(--card);border:1px solid var(--line)}
+.crumb{font-size:17px;font-weight:800;color:var(--navy)}
+
+.reminder{background:#FDF7EA;border-left:4px solid var(--amber);border-radius:0 10px 10px 0;
+  padding:13px 14px;margin:14px 0;font-size:13.5px;color:#6B5320;line-height:1.5}
+.reminder b{color:#4A3812}
+.guideLink{display:inline-flex;align-items:center;gap:7px;margin-top:10px;
+  background:#fff;border:1.5px solid #E0CFA6;color:#6B5320;border-radius:10px;
+  padding:9px 13px;font-weight:700;font-size:13px;text-decoration:none}
+.guideLink:active{background:#FBF3E2}
+
+/* ---- QA walk ---- */
+.prog{display:flex;gap:6px;margin-bottom:14px}
+.prog i{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.prog i.on{background:var(--green)}
+.prog i.now{background:var(--navy)}
+.stopHead{font-size:20px;font-weight:800;color:var(--navy);margin-bottom:3px}
+.stopSub{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gray);margin-bottom:14px}
+.diagram{width:100%;border-radius:12px;border:1px solid var(--line);display:block;
+  background:#fff;box-shadow:var(--shadow)}
+.zList{list-style:none;margin:16px 0 0;padding:0}
+.zList li{display:flex;gap:11px;align-items:flex-start;padding:11px 0;
+  border-bottom:1px solid var(--line);font-size:14.5px;line-height:1.4}
+.zList li:last-child{border-bottom:0}
+.zNum{flex:none;width:26px;height:26px;border-radius:8px;background:#EEF1F6;color:var(--blue);
+  display:grid;place-items:center;font-size:12px;font-weight:800}
+.flagBtn{width:100%;background:#fff;border:1.5px dashed #E0CFA6;color:#8A6D2F;
+  border-radius:11px;padding:11px;font-weight:700;font-size:13px;margin-top:12px}
+.flagBox{margin-top:10px}
+.flagChip{display:inline-flex;align-items:center;gap:6px;background:#FDF1D6;color:var(--amber);
+  border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;margin:4px 4px 0 0}
+.attest{background:#F4F6F9;border:1.5px solid var(--navy);border-radius:13px;padding:15px;
+  margin:18px 0;display:flex;gap:12px;align-items:flex-start;cursor:pointer;
+  max-width:520px;text-align:left}
+.attest .box{width:24px;height:24px;border-radius:7px;border:2px solid var(--gray);
+  flex:none;display:grid;place-items:center;font-size:15px;color:#fff;margin-top:1px}
+.attest.on{border-color:var(--green);background:#F1F8F4}
+.attest.on .box{background:var(--green);border-color:var(--green)}
+.attest .t{font-size:14px;line-height:1.45;font-weight:600}
+
+/* ---- callbacks ---- */
+.cbCard{background:var(--card);border:1px solid var(--line);border-radius:13px;
+  padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.cbCard.isCb{border-left:5px solid var(--red);background:#FEF7F7}
+.cbName{font-weight:800;font-size:15px}
+.cbMeta{color:var(--dim);font-size:12.5px;margin-top:3px}
+.cbBtn{margin-top:11px;width:100%;border:1.5px solid var(--line);border-radius:10px;
+  padding:11px;font-weight:700;font-size:13.5px;background:#fff;color:var(--navy)}
+.cbBtn.warnState{border-color:var(--red);background:#FDECEC;color:var(--red)}
+.cbNote{width:100%;margin-top:9px;padding:11px;border:1.5px solid var(--line);
+  border-radius:10px;background:#FBFBFC;font-size:14px}
+.done{text-align:center;padding:40px 20px}
+.doneIcon{width:70px;height:70px;border-radius:50%;background:#E7F4EC;color:var(--green);
+  display:grid;place-items:center;font-size:34px;margin:0 auto 18px}
+.doneTitle{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:8px}
+.empty{text-align:center;padding:44px 20px;color:var(--gray)}
+.empty .e{font-size:40px;margin-bottom:12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:80;
+  background:var(--navy);color:#fff;padding:12px 20px;border-radius:11px;font-weight:700;
+  font-size:13.5px;box-shadow:0 8px 26px rgba(35,42,60,.3);max-width:88vw;text-align:center}
+.spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--red);
+  border-radius:50%;animation:sp .8s linear infinite;margin:60px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+@media(min-width:820px){
+  .wrap{padding:22px 24px}
+  .opts{grid-template-columns:repeat(3,1fr)}
+  .whoGrid{grid-template-columns:repeat(4,1fr)}
+  .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+  .formGrid .full{grid-column:1 / -1}
+  #jobList{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  #jobList .card{margin-bottom:0}
+  .btnPrimary,.btnGhost{max-width:420px}
+  .btnRow{max-width:420px}
+}
+@media(hover:hover) and (pointer:fine){
+  .whoBtn:hover,.opt:hover{border-color:var(--navy)}
+  .btnGhost:hover{background:#F7F8FA;border-color:var(--navy)}
+  .btnPrimary:hover{filter:brightness(1.07)}
+}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px;border-radius:8px}
+/* ---- v2 additions ---- */
+body.noScroll{overflow:hidden}
+.pinBox{max-width:320px;margin:0 auto}
+.pinIn{text-align:center;font-size:30px;letter-spacing:.4em;font-weight:800;padding:16px}
+.pinMsg{text-align:center;color:var(--red);font-weight:700;font-size:13.5px;min-height:20px;margin:10px 0}
+.pill{font-size:11.5px;font-weight:800;background:#FDF1D6;color:var(--amber);border-radius:999px;
+  padding:5px 10px;white-space:nowrap}
+.pill.stalled{background:#FDECEC;color:var(--red)}
+.nextLine{margin:10px 0 12px;font-size:13px;font-weight:700;color:var(--navy)}
+
+.step{display:flex;gap:14px;background:var(--card);border:1.5px solid var(--line);border-radius:14px;
+  padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.stepNum{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  font-weight:800;font-size:17px;background:#EEF1F6;color:var(--blue)}
+.stepBody{flex:1;min-width:0}
+.stepT{font-size:17px;font-weight:800;color:var(--navy)}
+.stepS{font-size:13.5px;color:var(--dim);margin:3px 0 12px}
+.step.now{border-color:var(--navy)}
+.step.now .stepNum{background:var(--navy);color:#fff}
+.step.complete{border-color:#BFE0CC;background:#F7FBF8}
+.step.complete .stepNum{background:var(--green);color:#fff}
+.step.complete .stepNum::before{content:"\2713"}
+.step.complete .stepNum span{display:none}
+.step.locked{opacity:.55}
+.thumbs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.thumbs:empty{display:none}
+.thumbs img{width:58px;height:58px;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:none}
+
+.photoBtn{width:100%;margin-top:16px;padding:16px;border-radius:13px;font-weight:800;font-size:15.5px;
+  background:var(--navy);color:#fff;box-shadow:0 4px 14px rgba(35,42,60,.25)}
+.photoBtn.done{background:#E7F4EC;color:var(--green);box-shadow:none;border:1.5px solid #BFE0CC}
+
+.cam{position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column}
+.camTop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;
+  color:#fff;padding-top:max(14px,env(safe-area-inset-top))}
+.camTitle{font-weight:800;font-size:17px}
+.camCount{font-size:13.5px;color:#D7DBE3;margin-top:2px}
+.camDone{background:#fff;color:var(--navy);font-weight:800;border-radius:11px;padding:11px 18px}
+.camView{flex:1;position:relative;display:grid;place-items:center;overflow:hidden}
+.camView video{width:100%;height:100%;object-fit:contain;background:#000}
+.camFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.camFlash.go{animation:fl .25s ease-out}
+@keyframes fl{from{opacity:.85}to{opacity:0}}
+.camBar{display:flex;align-items:center;justify-content:center;gap:30px;padding:18px;
+  padding-bottom:max(22px,env(safe-area-inset-bottom));position:relative}
+.camLast{position:absolute;left:18px;width:58px;height:58px;object-fit:cover;border-radius:10px;border:2px solid #fff}
+.shutter{width:78px;height:78px;border-radius:50%;background:#fff;border:6px solid rgba(255,255,255,.35);
+  background-clip:padding-box}
+.shutter:active{transform:scale(.94)}
+.shutter[disabled]{opacity:.4}
+.camFallback{background:#fff;color:var(--navy);font-weight:800;border-radius:13px;padding:16px 26px;font-size:16px}
+.doneQueue{font-weight:800;font-size:14px;padding:12px 14px;border-radius:11px;margin:0 auto 22px;max-width:420px}
+.doneQueue.wait{background:#FDF1D6;color:var(--amber)}
+.doneQueue.ok{background:#E7F4EC;color:var(--green)}
+</style>
+</head>
+<body>
+
+<div id="pinGate" class="gate hide">
+  <div class="gateMark"><span class="wordmark">Glosswerks</span></div>
+  <div class="gateTitle">Job Documentation</div>
+  <div class="gateSub">Enter the team PIN. You only do this once on this iPad.</div>
+  <div class="pinBox">
+    <input class="in pinIn" id="pinIn" type="password" inputmode="numeric" pattern="[0-9]*"
+           maxlength="8" autocomplete="off" onkeydown="if(event.key==='Enter')submitPin()">
+    <div class="pinMsg" id="pinMsg"></div>
+    <button class="btnPrimary" id="pinBtn" onclick="submitPin()">Continue</button>
+  </div>
+</div>
+
+<div id="gate" class="gate hide">
+  <div class="gateMark"><span class="wordmark">Glosswerks</span></div>
+  <div class="gateTitle">Job Documentation</div>
+  <div class="gateSub">Tap your name to start.</div>
+  <div class="whoGrid" id="whoGrid"></div>
+</div>
+
+<div id="app" class="hide">
+  <div class="top">
+    <div class="topRow">
+      <div class="brand">
+        <span class="wordmark">Glosswerks</span>
+        <span class="subMark">Jobs</span>
+      </div>
+      <span class="pill hide" id="pill"></span>
+      <button class="whoChip" onclick="signOut()">
+        <span class="avatar" id="whoAv"></span><span id="whoName"></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="loading" class="spin"></div>
+
+  <!-- ---------- HOME ---------- -->
+  <div id="scHome" class="wrap hide">
+    <div class="h">Your open jobs</div>
+    <div id="jobList"></div>
+    <div style="height:8px"></div>
+    <button class="btnPrimary" onclick="showStart()">Start a new job</button>
+    <div style="height:10px"></div>
+    <button class="btnGhost" onclick="loadAll()">Refresh</button>
+    <button class="btnGhost hide" id="cbEntry" onclick="showCallbacks()">Log a callback</button>
+  </div>
+
+  <!-- ---------- START JOB ---------- -->
+  <div id="scStart" class="wrap hide">
+    <div class="backBar">
+      <button class="backBtn" onclick="showHome()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back</button>
+      <div class="crumb">Start a job</div>
+    </div>
+
+    <div class="card">
+      <div class="formGrid">
+        <div>
+          <label class="f">Customer name (first and last)</label>
+          <input class="in" id="sCustomer" list="custList" placeholder="First and last, e.g. Robert Call" autocomplete="off">
+          <datalist id="custList"></datalist>
+        </div>
+        <div>
+          <label class="f">Vehicle</label>
+          <input class="in" id="sVehicle" placeholder="2022 Lincoln Navigator" autocomplete="off">
+        </div>
+        <div>
+          <label class="f">Vehicle size</label>
+          <select class="in" id="sSize"></select>
+        </div>
+        <div>
+          <label class="f">Service</label>
+          <select class="in" id="sService"></select>
+        </div>
+        <div class="full">
+          <label class="f">Add-ons</label>
+          <div class="opts" id="sAddons"></div>
+        </div>
+        <div>
+          <label class="f">VIN entered in Urable</label>
+          <div class="opts" style="grid-template-columns:1fr 1fr">
+            <button class="opt" id="sVinYes" onclick="setVin(true)"><span class="box">&#10003;</span>Yes</button>
+            <button class="opt on" id="sVinNo" onclick="setVin(false)"><span class="box">&#10003;</span>Not yet</button>
+          </div>
+        </div>
+        <div>
+          <label class="f">Odometer (optional)</label>
+          <input class="in" id="sOdo" inputmode="numeric" placeholder="Miles">
+        </div>
+        <div>
+          <label class="f">Customer on site</label>
+          <div class="opts" style="grid-template-columns:1fr 1fr">
+            <button class="opt" id="sPresentYes" onclick="setPresent(true)"><span class="box">&#10003;</span>Yes</button>
+            <button class="opt on" id="sPresentNo" onclick="setPresent(false)"><span class="box">&#10003;</span>No</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="h">Pre-existing damage</div>
+    <div class="muted" style="margin:-4px 0 10px">
+      Tap anything already on the vehicle before you touch it. This is what protects
+      you if a customer claims damage later.
+    </div>
+    <div class="opts" id="sDamage"></div>
+
+    <label class="f">Condition notes</label>
+    <textarea class="in" id="sNotes"
+      placeholder="Where the damage is, how dirty it is, anything the customer pointed out"></textarea>
+
+    <div style="height:18px"></div>
+    <button class="btnPrimary btnGo" id="startBtn" onclick="submitStart()">Start job</button>
+  </div>
+
+  <!-- ---------- THE JOB: three steps ---------- -->
+  <div id="scJob" class="wrap hide">
+    <div class="backBar">
+      <button class="backBtn" onclick="showHome()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Jobs</button>
+      <div class="crumb">This job</div>
+    </div>
+    <div class="card open">
+      <div class="jobName" id="jName"></div>
+      <div class="chips" id="jChips"></div>
+    </div>
+
+    <div class="step" id="st1"><div class="stepNum"><span>1</span></div><div class="stepBody">
+      <div class="stepT">Before photos</div><div class="stepS" id="st1s"></div>
+      <div class="thumbs" id="th1"></div>
+      <button class="btnPrimary" id="st1b" onclick="openCamera('Before')"></button>
+    </div></div>
+
+    <div class="step" id="st2"><div class="stepNum"><span>2</span></div><div class="stepBody">
+      <div class="stepT">After photos</div><div class="stepS" id="st2s"></div>
+      <div class="thumbs" id="th2"></div>
+      <button class="btnPrimary" id="st2b" onclick="openCamera('After')"></button>
+    </div></div>
+
+    <div class="step" id="st3"><div class="stepNum"><span>3</span></div><div class="stepBody">
+      <div class="stepT">Final check and complete</div><div class="stepS" id="st3s"></div>
+      <button class="btnPrimary btnGo" id="st3b" onclick="startWalk()"></button>
+    </div></div>
+
+    <a class="guideLink" id="guideA" target="_blank" rel="noopener" href="#">Photo reference guide &#8599;</a>
+    <div style="height:22px"></div>
+    <button class="btnGhost" id="cancelBtn" onclick="armCancel()">Cancel this job</button>
+  </div>
+
+  <!-- ---------- FINAL CHECK ---------- -->
+  <div id="scInspect" class="wrap hide">
+    <div class="backBar">
+      <button class="backBtn" onclick="walkBack()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back</button>
+      <div class="crumb">Final check</div>
+    </div>
+    <div id="scopeAsk" class="hide">
+      <div class="stopHead">What did this visit cover?</div>
+      <div class="muted" style="margin:6px 0 16px">
+        Fleet and maintenance visits vary, so the check matches what you actually did.
+      </div>
+      <button class="btnGhost" onclick="pickScope('interior')">Interior only</button>
+      <button class="btnGhost" onclick="pickScope('exterior')">Exterior only</button>
+      <button class="btnGhost" onclick="pickScope('both')">Both, full detail</button>
+    </div>
+    <div id="walkBody">
+      <div class="prog" id="walkProg"></div>
+      <div class="stopHead" id="stopTitle"></div>
+      <div class="stopSub" id="stopCount"></div>
+      <img class="diagram" id="stopDiagram" alt="Zone reference">
+      <ul class="zList" id="stopItems"></ul>
+      <button class="photoBtn" id="stopPhotoBtn" onclick="stopPhoto()"></button>
+      <div class="flagBox" id="stopFlags"></div>
+      <button class="flagBtn" onclick="openFlag()">Something here I could not fix</button>
+      <div id="flagEntry" class="hide" style="margin-top:10px">
+        <input class="in" id="flagText" placeholder="What and where, one line">
+        <div class="btnRow" style="margin-top:8px">
+          <button class="btnGhost" onclick="closeFlag()">Cancel</button>
+          <button class="btnGhost" style="border-color:var(--amber);color:var(--amber)" onclick="saveFlag()">Add flag</button>
+        </div>
+      </div>
+      <div style="height:18px"></div>
+      <button class="btnPrimary btnGo" id="stopBtn" onclick="confirmStop()">Checked all of these</button>
+    </div>
+  </div>
+
+  <!-- ---------- COMPLETE JOB ---------- -->
+  <div id="scComplete" class="wrap hide">
+    <div class="backBar">
+      <button class="backBtn" onclick="showJob(CURRENT.jobId)">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back</button>
+      <div class="crumb">Complete job</div>
+    </div>
+    <div class="card fin">
+      <div class="jobName" id="cJobName"></div>
+      <div class="chips" id="cJobChips"></div>
+    </div>
+
+    <label class="f">Add-ons actually performed</label>
+    <div class="muted" style="margin:-4px 0 9px">Correct this if it changed on site. It is what gets billed.</div>
+    <div class="opts" id="cAddons"></div>
+
+    <label class="f">Extra labor beyond the quote (minutes)</label>
+    <input class="in" id="cLabor" inputmode="numeric" placeholder="0">
+    <div class="muted" style="margin-top:6px">
+      Billed at $135/hr in 15 minute blocks. If you do not log it here it does not get invoiced.
+    </div>
+
+    <label class="f">Work notes</label>
+    <textarea class="in" id="cNotes" placeholder="What you did, products used, anything worth recording"></textarea>
+
+    <label class="f">Issues or new damage found</label>
+    <textarea class="in" id="cIssues" placeholder="Leave blank if none"></textarea>
+
+    <label class="f">Walkthrough with customer</label>
+    <div class="opts" style="grid-template-columns:1fr 1fr">
+      <button class="opt" id="cWalkYes" onclick="setWalk(true)"><span class="box">&#10003;</span>Done</button>
+      <button class="opt on" id="cWalkNo" onclick="setWalk(false)"><span class="box">&#10003;</span>Not possible</button>
+    </div>
+
+    <button class="attest" id="attestBox" onclick="toggleAttest()">
+      <span class="box">&#10003;</span><span class="t" id="attestText"></span>
+    </button>
+    <button class="btnPrimary btnGo" id="completeBtn" onclick="submitComplete()">Complete job</button>
+  </div>
+
+  <!-- ---------- CALLBACKS ---------- -->
+  <div id="scCallback" class="wrap hide">
+    <div class="backBar">
+      <button class="backBtn" onclick="showHome()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back</button>
+      <div class="crumb">Log a callback</div>
+    </div>
+    <input class="in" id="cbSearch" placeholder="Search customer or vehicle" oninput="renderCallbackList()" autocomplete="off">
+    <div class="muted" style="margin-top:8px">
+      Finished jobs from the last 60 days. Marking one attaches the callback to the tech who signed it off.
+    </div>
+    <div id="cbList" style="margin-top:16px"></div>
+  </div>
+
+  <!-- ---------- DONE ---------- -->
+  <div id="scDone" class="wrap hide done">
+    <div class="doneIcon">&#10003;</div>
+    <div class="doneTitle" id="doneTitle">Job complete</div>
+    <div class="muted" id="doneMsg" style="margin-bottom:18px"></div>
+    <div class="doneQueue ok" id="doneQueue">All photos sent.</div>
+    <button class="btnPrimary" onclick="showHome()">Back to my jobs</button>
+  </div>
+</div>
+
+<!-- ---------- CAMERA ---------- -->
+<div id="cam" class="cam hide">
+  <div class="camTop">
+    <div><div class="camTitle" id="camTitle"></div><div class="camCount" id="camCount"></div></div>
+    <button class="camDone" onclick="closeCamera()">Done</button>
+  </div>
+  <div class="camView">
+    <video id="camVideo" playsinline muted autoplay></video>
+    <button class="camFallback hide" id="camFallback" onclick="el('fileCam').click()">&#128247; Open camera</button>
+    <div class="camFlash" id="camFlash"></div>
+  </div>
+  <div class="camBar">
+    <img class="camLast hide" id="camLast" alt="">
+    <button class="shutter" id="camShutter" onclick="snap()" aria-label="Take photo"></button>
+  </div>
+  <input type="file" id="fileCam" accept="image/*" capture="environment" class="hide" onchange="fromFile(this)">
+</div>
+
+<div id="toast" class="toast hide"></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+  (function () {
+    var g = (window.GW_CONFIG || {}).PHOTO_GUIDE_URL;
+    var a = document.getElementById("guideA");
+    if (g) a.href = g; else a.classList.add("hide");
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "Glosswerks Jobs",
+  "short_name": "GW Jobs",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FAFAFA",
+  "theme_color": "#232A3C",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
